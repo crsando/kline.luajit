@@ -1,0 +1,14 @@
+# 测试产生的临时数据目录
+tmp_*/
+# 落地数据(不入库)
+data/
+*.csv
+*.parquet
+# 编辑器 / 系统
+.DS_Store
+*.swp
+*~
+.vscode/
+.idea/
+# LuaJIT 字节码
+*.luac
