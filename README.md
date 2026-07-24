@@ -1,4 +1,4 @@
-# kline.lua
+# kline.luajit
 
 > 面向**国内期货**的 LuaJIT K 线内存库：在进程内维护多品种、多周期 K 线，支持 tick 实时合成、
 > 交易时段感知、多周期 roll-up 派生，以及可读的 CSV 落地与回放。追求低 GC、高吞吐。
