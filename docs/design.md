@@ -124,15 +124,14 @@ store:flush_open_bars()
 
 ### 3.3 落地 / 加载
 ```lua
--- 手动落地：把内存中「已封口且未落地」的部分增量写入文件
-store:persist()                       -- 按配置的策略/路径落全部
-s:persist()                           -- 只落某条序列
+-- 手动落地：已封口 bar 按 trading_day 分文件，以 bar_time 为主键 upsert
+kline.persist.persist(s, "data", { price_fmt = "%.1f" })
 
 -- 从落地文件加载回内存（启动预热 / 回测）
-store:load("rb2510", "1m", {from=..., to=...})
+kline.persist.load(s, "data", 20260723)
 
--- 直接读文件为迭代器，不进内存（大数据流式回放）
-kline.codec.open("path/rb2510_1m_20260723.kbar"):iter()
+-- 直接读取一个文件为 bar table 数组
+local bars = kline.persist.read_file("data/rb2510_1m_20260723.csv")
 ```
 
 ### 3.4 交易时段 / 日历（可单独用）
@@ -151,7 +150,7 @@ cal:trading_day(ts_ms)                      -- 返回该 tick 归属的交易日
 
 ### 4.1 温层：CSV（默认落地格式，`.csv`）
 
-实时增量落地用 CSV，理由：LuaJIT 原生 `io.write` 就能高效追加、人可直接打开看、pandas 一行读入、append-only 天然契合 K 线。
+实时增量落地用 CSV。每个交易日只有数百根分钟 bar，落地时读取当日文件、按 `bar_time` 合并并排序，最后通过同目录临时文件原子替换。这样进程重启后重复调用保持幂等，也支持修正历史 bar。
 
 ```
 # 文件头两行：注释元信息（# 开头，pandas 用 comment='#' 跳过）+ 列名行
@@ -228,7 +227,7 @@ SELECT * FROM 'archive/rb2510/1m/2026/*.parquet' WHERE trading_day BETWEEN 20260
 - 追加时 `len == cap` 就倍增扩容（`ffi.new` 新数组 + `ffi.copy` 搬迁），摊还 O(1)。
 - 可选**环形缓冲**模式：只保留最近 N 根（实时盯盘不需要全历史时省内存）。
 - 查询走二分（bar_time 单调递增），`slice` 返回轻量视图（起止索引 + 引用），不拷贝数据。
-- Series header 存 symbol、period、时段表引用、last_persist_index（增量落地水位线）。
+- Series header 只保留内存序列自身状态；持久化状态由磁盘文件中的 `bar_time` 决定，不依赖进程内水位。
 
 ---
 

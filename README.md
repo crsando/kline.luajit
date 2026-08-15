@@ -3,7 +3,7 @@
 > 面向**国内期货**的 LuaJIT K 线内存库：在进程内维护多品种、多周期 K 线，支持 tick 实时合成、
 > 交易时段感知、多周期 roll-up 派生，以及可读的 CSV 落地与回放。追求低 GC、高吞吐。
 
-**状态**：M0–M5 全部完成 ✅　10 个 spec、**179 断言全绿**（LuaJIT 2.1）。
+**状态**：M0–M5 全部完成 ✅　10 个 spec、**192 断言全绿**（LuaJIT 2.1）。
 tick → 1m 合成 → 5m/15m 派生 → CSV 落地 → 加载回放，端到端跑通。
 
 ---
@@ -14,7 +14,7 @@ tick → 1m 合成 → 5m/15m 派生 → CSV 落地 → 加载回放，端到端
 - **Tick → 1m 合成**：时段过滤脏 tick、volume 差值累加（CTP 累计值）、跨分钟 + 主动 flush 封口。
 - **多周期 roll-up**：1m → 5m/15m/30m/60m，时钟对齐 + **休盘/午休/收盘边界强制封口**、缺失不补空。
 - **交易时段与日历**：`in_session` 判定、夜盘 `trading_day` 正确归属下一交易日（只处理周末）。
-- **可读落地**：CSV（带 `#` 元信息头、定点价格），pandas / DuckDB / Excel 直读；按 `trading_day` 切分、增量水位线。
+- **可读落地**：CSV（带 `#` 元信息头、定点价格），pandas / DuckDB / Excel 直读；按 `trading_day` 切分、以 `bar_time` 为主键幂等更新。
 - **零第三方依赖**：纯 LuaJIT + 内置 `bit` 库；测试用极简自研断言（不依赖 busted）。
 
 ## 🧱 目录结构
@@ -32,9 +32,10 @@ kline/                 库源码（13 个模块）
 ├── period.lua         1m → N分钟 roll-up
 ├── pipeline.lua       编织层：tick → 1m → 多周期 → store
 ├── codec.lua          CSV 编解码
-├── persist.lua        按 trading_day 切分的增量落地 / 加载
+├── persist.lua        按 trading_day 切分、bar_time upsert / 加载
 └── init.lua           聚合 API（require "kline"）
 spec/                  纯 Lua 单元测试 + t.lua 断言 helper
+tools/akshare_data/    uv 子项目：抓取新浪期货分钟线作为历史测试数据
 docs/                  设计稿 / 平台调研 / 开发计划
 run_tests.sh           一键跑全部 spec
 ```
@@ -75,7 +76,7 @@ df = pd.read_csv("data/rb2510_1m_20260724.csv", comment="#", parse_dates=["bar_t
 bash run_tests.sh          # 在 kline 项目根目录执行(需 luajit 在 PATH)
 ```
 
-跑全部 10 个 spec，共 179 断言。
+跑全部 10 个 spec，共 192 断言。
 
 ## 📐 行情字段（kline_bar_t，88 字节）
 
@@ -104,10 +105,12 @@ bash run_tests.sh          # 在 kline 项目根目录执行(需 luajit 在 PATH
 
 ## 📚 文档
 
+- **本地共享数据目录、文件格式和并发约定见 [DATABASE.md](DATABASE.md)。**
 - `docs/design.md` — 库设计稿（架构 / 字段 / API / 落地格式）
 - `docs/platforms_research.md` — vnpy 等国内平台 K 线聚合调研与踩坑
 - `docs/tradingview_research.md` — TradingView 对齐哲学对比
 - `docs/DEVELOPMENT.md` — 分里程碑开发计划与验收
+- `tools/akshare_data/README.md` — AKShare 新浪期货测试数据工具与格式差异
 
 ## 🗺️ Roadmap
 

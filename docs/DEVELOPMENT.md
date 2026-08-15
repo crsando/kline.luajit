@@ -1,6 +1,6 @@
 # kline.lua — LuaJIT 期货 K 线内存库 · 开发计划
 
-> **进度（2026-07-24）：M0–M5 全部完成 ✅　10 个 spec、179 断言全绿。**
+> **进度（2026-07-24）：M0–M5 全部完成 ✅　10 个 spec、192 断言全绿。**
 > tick → 1m 合成 → 5m/15m 派生 → CSV 落地 → 加载回放，端到端跑通（LuaJIT 2.1 / WSL）。
 > 跑测试：`wsl bash -c "cd .../outputs && bash run_tests.sh"`
 
@@ -51,17 +51,17 @@ bar.lua                                                             + 主动封�
 
 ### 🗂️ M1 — 内存时间序列（2–3 天）· 核心
 产出：能在内存里维护一条 (symbol,period) 序列，支持追加/查询/二分。
-- [ ] `series.lua`：预分配 FFI 数组 + 倍增扩容；`append` / `last` / `at`（支持负索引）/ `count` / `slice(from,to)` / `find(bar_time)`（二分）。Series header 存 symbol/period/last_persist_index。
+- [ ] `series.lua`：预分配 FFI 数组 + 倍增扩容；`append` / `last` / `at`（支持负索引）/ `count` / `slice(from,to)` / `find(bar_time)`（二分）。Series header 存 symbol/period。
 - [ ] `store.lua`：多 Series 容器，`series(sym,period)` 建/取、遍历。
 - **验收**：插入 10 万根 bar 无明显 GC 抖动；二分定位正确；扩容后数据完整；slice 返回视图不拷贝。
 
 ### 💾 M2 — 落地与加载（2–3 天）
 产出：内存序列能增量写 CSV、能从 CSV 读回。
 - [ ] `codec.lua`：CSV 后端——写 `#` 元信息头 + 列名 + 数据行；价格定点格式化；读回解析。预留 JSONL 后端接口。
-- [ ] `persist.lua`：增量落地（按 `last_persist_index` 水位线）；文件切分 `{symbol}_{period}_{trading_day}.csv`；flush 策略（满 N 根/收盘/定时）；`load()` 预热。
+- [ ] `persist.lua`：按 `bar_time` 主键幂等 upsert；文件切分 `{symbol}_{period}_{trading_day}.csv`；同目录临时文件原子替换；`load()` 预热。
 - [ ] **互操作验收脚本**：Python 用 `pd.read_csv(comment='#', parse_dates=['bar_time'])` 读回，校验行数/OHLC 一致。
 - [ ] Parquet 归档脚本（DuckDB `COPY ... TO parquet`），独立于 Lua。
-- **验收**：写→读回 round-trip 数据一致；pandas 能无警告读入；增量落地不重复写。
+- **验收**：写→读回 round-trip 数据一致；pandas 能无警告读入；重启恢复后重复落地不增行；同时间修正可覆盖。
 
 ### 📅 M3 — 交易时段与日历（2–3 天）
 产出：能判定时段、算 trading_day、判断封口边界。

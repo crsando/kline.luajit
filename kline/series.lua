@@ -21,7 +21,6 @@ function Series.new(symbol, period, opts)
   self.cap = opts.cap or INIT_CAP
   self.len = 0
   self.data = types.bar_array_t(self.cap)   -- kline_bar_t[cap]
-  self.last_persist_index = 0               -- 增量落地水位线(1-based 已落地根数)
   return self
 end
 

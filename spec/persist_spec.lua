@@ -3,6 +3,7 @@ package.path = "./?.lua;./?/init.lua;" .. package.path
 local T = require("spec.t")
 local Series = require("kline.series")
 local persist = require("kline.persist")
+local types = require("kline.types")
 local util = require("kline.util")
 
 T.suite("persist")
@@ -15,12 +16,15 @@ local function ms(s) return util.str_to_ms(s) end
 local s = Series.new("rb2510", "1m")
 -- 两根属于交易日 20260724(日盘)
 s:append{ bar_time = ms("2026-07-24 09:00:00"), trading_day = 20260724,
-          open = 3200, high = 3205, low = 3199, close = 3202, volume = 100, open_interest = 210000 }
+          open = 3200, high = 3205, low = 3199, close = 3202, volume = 100,
+          open_interest = 210000, flags = types.FLAG.CLOSED }
 s:append{ bar_time = ms("2026-07-24 09:01:00"), trading_day = 20260724,
-          open = 3202, high = 3210, low = 3201, close = 3208, volume = 80, open_interest = 210050 }
+          open = 3202, high = 3210, low = 3201, close = 3208, volume = 80,
+          open_interest = 210050, flags = types.FLAG.CLOSED }
 -- 一根夜盘,归属下一交易日 20260727
 s:append{ bar_time = ms("2026-07-24 21:00:00"), trading_day = 20260727,
-          open = 3208, high = 3212, low = 3206, close = 3210, volume = 60, open_interest = 210100 }
+          open = 3208, high = 3212, low = 3206, close = 3210, volume = 60,
+          open_interest = 210100, flags = types.FLAG.CLOSED }
 
 -- 首次落地:应写 3 根,生成 2 个文件(按 trading_day 切分)
 local w1 = persist.persist(s, DIR, { price_fmt = "%.1f" })
@@ -35,11 +39,12 @@ if f2 then f2:close() end
 
 -- 增量:无新 bar,应写 0
 local w2 = persist.persist(s, DIR, { price_fmt = "%.1f" })
-T.eq(w2, 0, "无新增写 0(水位线生效)")
+T.eq(w2, 0, "无新增写 0(bar_time 幂等匹配)")
 
 -- 追加新 bar 后增量落地
 s:append{ bar_time = ms("2026-07-24 09:02:00"), trading_day = 20260724,
-          open = 3208, high = 3215, low = 3207, close = 3212, volume = 90, open_interest = 210080 }
+          open = 3208, high = 3215, low = 3207, close = 3212, volume = 90,
+          open_interest = 210080, flags = types.FLAG.CLOSED }
 local w3 = persist.persist(s, DIR, { price_fmt = "%.1f" })
 T.eq(w3, 1, "增量只写新增 1 根")
 
@@ -57,6 +62,37 @@ T.eq(n, 3, "load_into 读入 3 根")
 T.eq(s2:count(), 3, "新序列 3 根")
 T.approx(s2:last().close, 3212, 1e-6, "新序列 last close 一致")
 T.eq(tonumber(s2:at(1).bar_time), tonumber(ms("2026-07-24 09:00:00")), "bar_time 往返一致")
+
+-- 重启恢复后再次持久化:bar_time 已存在且内容相同,不得重复追加
+local w4 = persist.persist(s2, DIR, { price_fmt = "%.1f" })
+T.eq(w4, 0, "加载恢复后再次持久化写 0 根")
+local bars_after_restart = persist.read_file(DIR .. "/rb2510_1m_20260724.csv", {})
+T.eq(#bars_after_restart, 3, "恢复后持久化不产生重复行")
+
+-- 同一 bar_time 内容发生变化:更新原行,总行数不变
+s2:at(2).close = 3299
+local w5 = persist.persist(s2, DIR, { price_fmt = "%.1f" })
+T.eq(w5, 1, "同一 bar_time 内容变化计为 1 次更新")
+local corrected = persist.read_file(DIR .. "/rb2510_1m_20260724.csv", {})
+T.eq(#corrected, 3, "修正已有 bar 不增加行数")
+T.approx(corrected[2].close, 3299, 1e-6, "修正值已写回")
+
+-- 未封口 bar 不落盘
+local open_series = Series.new("cu2508", "1m")
+open_series:append{ bar_time = ms("2026-07-24 09:00:00"), trading_day = 20260724,
+                    open = 100, high = 100, low = 100, close = 100, flags = 0 }
+T.eq(persist.persist(open_series, DIR), 0, "未封口 bar 被跳过")
+local open_file = io.open(DIR .. "/cu2508_1m_20260724.csv", "r")
+T.eq(open_file, nil, "未封口 bar 不创建文件")
+
+-- 当前 Series 只有新增数据时,磁盘上的旧记录仍会保留
+local partial = Series.new("rb2510", "1m")
+partial:append{ bar_time = ms("2026-07-24 09:03:00"), trading_day = 20260724,
+                open = 3300, high = 3301, low = 3299, close = 3300, flags = types.FLAG.CLOSED }
+T.eq(persist.persist(partial, DIR, { price_fmt = "%.1f" }), 1, "部分 Series 可补写新 bar")
+local merged = persist.read_file(DIR .. "/rb2510_1m_20260724.csv", {})
+T.eq(#merged, 4, "补写时保留磁盘已有记录")
+T.eq(tonumber(merged[4].bar_time), tonumber(ms("2026-07-24 09:03:00")), "文件按 bar_time 排序")
 
 -- 清理
 os.execute('rm -rf "' .. DIR .. '" 2>/dev/null')

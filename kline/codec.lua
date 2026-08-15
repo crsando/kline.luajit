@@ -44,26 +44,37 @@ function M.parse_line(line, opts)
   local tz = opts.tz or util.TZ_OFFSET
   local f = {}
   for field in (line .. ","):gmatch("([^,]*),") do f[#f + 1] = field end
-  if #f < 12 then return nil end
+  if #f ~= 12 then return nil, "expected 12 columns, got " .. #f end
+
+  local bar_time = util.str_to_ms(f[1], tz)
+  local values = {}
+  for i = 2, 12 do
+    values[i] = tonumber(f[i])
+    if values[i] == nil then
+      return nil, string.format("column %s is not numeric", M.COLUMNS[i])
+    end
+  end
+  if not bar_time then return nil, "invalid bar_time" end
+
   return {
-    bar_time      = util.str_to_ms(f[1], tz),
-    trading_day   = tonumber(f[2]),
-    open          = tonumber(f[3]),
-    high          = tonumber(f[4]),
-    low           = tonumber(f[5]),
-    close         = tonumber(f[6]),
-    volume        = tonumber(f[7]),
-    turnover      = tonumber(f[8]),
-    open_interest = tonumber(f[9]),
-    settlement    = tonumber(f[10]),
-    tick_count    = tonumber(f[11]),
-    flags         = tonumber(f[12]),
+    bar_time      = bar_time,
+    trading_day   = values[2],
+    open          = values[3],
+    high          = values[4],
+    low           = values[5],
+    close         = values[6],
+    volume        = values[7],
+    turnover      = values[8],
+    open_interest = values[9],
+    settlement    = values[10],
+    tick_count    = values[11],
+    flags         = values[12],
   }
 end
 
 -- 判断是否为需跳过的行(注释头 / 列名行 / 空行)。返回纯布尔。
 function M.is_skip_line(line)
-  return line == "" or line:sub(1, 1) == "#" or line:match("^bar_time") ~= nil
+  return line:match("^%s*$") ~= nil or line:sub(1, 1) == "#" or line:match("^bar_time") ~= nil
 end
 
 return M

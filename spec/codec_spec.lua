@@ -39,6 +39,12 @@ T.eq(tonumber(bt.bar_time), tonumber(util.str_to_ms("2026-07-24 09:30:00")),
 T.eq(codec.is_skip_line("# comment"), true, "跳过注释")
 T.eq(codec.is_skip_line("bar_time,trading_day"), true, "跳过列名行")
 T.eq(codec.is_skip_line(""), true, "跳过空行")
+T.eq(codec.is_skip_line("  "), true, "跳过纯空白行")
 T.eq(codec.is_skip_line("2026-07-24 09:30:00,20260724,3200"), false, "数据行不跳")
+
+-- 非法数据行必须拒绝,不能静默生成零值 bar
+local invalid, parse_err = codec.parse_line("bad-time,x,x,x,x,x,x,x,x,x,x,x")
+T.eq(invalid, nil, "非法 CSV 行返回 nil")
+T.ok(type(parse_err) == "string", "非法 CSV 行返回错误原因")
 
 T.done()
