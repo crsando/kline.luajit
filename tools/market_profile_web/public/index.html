@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Market Profile Research</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <strong>Market Profile</strong>
+        <span>Local research</span>
+      </div>
+      <div class="data-root" id="dataRoot">加载中</div>
+      <div class="date-list" id="dateList"></div>
+    </aside>
+
+    <main class="workspace">
+      <header class="toolbar">
+        <div class="day-title">
+          <h1 id="dayTitle">选择交易日</h1>
+          <div class="status-row" id="statusRow"></div>
+        </div>
+        <div class="actions">
+          <button data-run="1min">运行 1min</button>
+          <button data-run="profile">运行 Profile</button>
+          <button data-run="visual">生成 Visual</button>
+          <button class="primary" data-run="all">运行全部</button>
+        </div>
+      </header>
+
+      <nav class="tabs">
+        <button class="active" data-tab="overview">每日总览</button>
+        <button data-tab="review">人工 Review</button>
+        <button data-tab="tasks">任务日志</button>
+      </nav>
+
+      <section class="panel active" id="overviewPanel">
+        <div class="empty-state" id="overviewEmpty">选择一个已生成 Visual 的交易日</div>
+        <iframe class="overview-frame" id="overviewFrame" title="每日行情总览"></iframe>
+      </section>
+
+      <section class="panel" id="reviewPanel">
+        <div class="review-toolbar">
+          <select id="instrumentSelect" aria-label="选择合约"></select>
+          <span id="reviewProgress"></span>
+          <a class="button-link" id="exportReviews" href="#">导出 Review CSV</a>
+        </div>
+        <div class="review-layout">
+          <iframe class="detail-frame" id="detailFrame" title="单品种行情详情"></iframe>
+          <div class="review-list" id="reviewList"></div>
+        </div>
+      </section>
+
+      <section class="panel" id="tasksPanel">
+        <div class="task-list" id="taskList"></div>
+        <pre class="task-log" id="taskLog">暂无任务日志</pre>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="/app.js?v=4" type="module"></script>
+</body>
+</html>
