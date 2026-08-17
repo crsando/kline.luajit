@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kline-day-market-profile"
+version = "0.2.0"
+description = "Standard-library day-session tick Volume Profile and offline visualization pipeline"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+day-market-profile = "market_profile:main"
+day-market-profile-visualize = "visualize:main"
+
+[tool.setuptools]
+py-modules = ["market_profile", "visualize"]

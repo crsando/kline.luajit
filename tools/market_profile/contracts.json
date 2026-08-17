@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "effective_date": "2026-01-09",
+  "metadata_sources": {
+    "SHFE_INE": "https://www.shfe.com.cn/services/calenderandholidays/tradinghours/",
+    "DCE": "http://www.dce.com.cn/dalianshangpin/ywfw/ywzy/jyywzy/ywlcyzl26/8588664/index.html",
+    "CFFEX": "http://www.cffex.com.cn/cn/30tl.html",
+    "GFEX": "http://www.gfex.com.cn/gfex/sspzb/sspz.shtml",
+    "CZCE": "https://www.czce.com.cn/cn/sspz/index.shtml"
+  },
+  "session_groups": {
+    "commodity": {
+      "morning": [["09:00", "10:15"], ["10:30", "11:30"]],
+      "afternoon": [["13:30", "15:00"]],
+      "available_time": "11:30:00"
+    },
+    "index": {
+      "morning": [["09:30", "11:30"]],
+      "afternoon": [["13:00", "15:00"]],
+      "available_time": "11:30:00"
+    },
+    "bond": {
+      "morning": [["09:30", "11:30"]],
+      "afternoon": [["13:00", "15:15"]],
+      "available_time": "11:30:00"
+    }
+  },
+  "contracts": {
+    "IF": {"exchange": "CFFEX", "session_group": "index", "tick_size": 0.2, "multiplier": 300},
+    "IC": {"exchange": "CFFEX", "session_group": "index", "tick_size": 0.2, "multiplier": 200},
+    "IH": {"exchange": "CFFEX", "session_group": "index", "tick_size": 0.2, "multiplier": 300},
+    "IM": {"exchange": "CFFEX", "session_group": "index", "tick_size": 0.2, "multiplier": 200},
+    "T": {"exchange": "CFFEX", "session_group": "bond", "tick_size": 0.005, "multiplier": 10000},
+    "TF": {"exchange": "CFFEX", "session_group": "bond", "tick_size": 0.005, "multiplier": 10000},
+    "TS": {"exchange": "CFFEX", "session_group": "bond", "tick_size": 0.002, "multiplier": 20000},
+    "TL": {"exchange": "CFFEX", "session_group": "bond", "tick_size": 0.01, "multiplier": 10000},
+    "BB": {"exchange": "DCE", "session_group": "commodity", "tick_size": 0.05, "multiplier": 500},
+    "FB": {"exchange": "DCE", "session_group": "commodity", "tick_size": 0.5, "multiplier": 10},
+    "JD": {"exchange": "DCE", "session_group": "commodity", "tick_size": 1, "multiplier": 10},
+    "LH": {"exchange": "DCE", "session_group": "commodity", "tick_size": 5, "multiplier": 16},
+    "LG": {"exchange": "DCE", "session_group": "commodity", "tick_size": 0.5, "multiplier": 90},
+    "AP": {"exchange": "CZCE", "session_group": "commodity", "tick_size": 1, "multiplier": 10, "turnover_divisor": 1},
+    "CJ": {"exchange": "CZCE", "session_group": "commodity", "tick_size": 5, "multiplier": 5, "turnover_divisor": 1},
+    "JR": {"exchange": "CZCE", "session_group": "commodity", "tick_size": 1, "multiplier": 20, "turnover_divisor": 1},
+    "LR": {"exchange": "CZCE", "session_group": "commodity", "tick_size": 1, "multiplier": 20, "turnover_divisor": 1},
+    "PK": {"exchange": "CZCE", "session_group": "commodity", "tick_size": 2, "multiplier": 5, "turnover_divisor": 1},
+    "PM": {"exchange": "CZCE", "session_group": "commodity", "tick_size": 1, "multiplier": 50, "turnover_divisor": 1},
+    "RI": {"exchange": "CZCE", "session_group": "commodity", "tick_size": 1, "multiplier": 20, "turnover_divisor": 1},
+    "RS": {"exchange": "CZCE", "session_group": "commodity", "tick_size": 1, "multiplier": 10, "turnover_divisor": 1},
+    "SF": {"exchange": "CZCE", "session_group": "commodity", "tick_size": 2, "multiplier": 5, "turnover_divisor": 1},
+    "SM": {"exchange": "CZCE", "session_group": "commodity", "tick_size": 2, "multiplier": 5, "turnover_divisor": 1},
+    "WH": {"exchange": "CZCE", "session_group": "commodity", "tick_size": 1, "multiplier": 20, "turnover_divisor": 1},
+    "WR": {"exchange": "SHFE", "session_group": "commodity", "tick_size": 1, "multiplier": 10},
+    "EC": {"exchange": "INE", "session_group": "commodity", "tick_size": 0.1, "multiplier": 50},
+    "SI": {"exchange": "GFEX", "session_group": "commodity", "tick_size": 5, "multiplier": 5},
+    "LC": {"exchange": "GFEX", "session_group": "commodity", "tick_size": 20, "multiplier": 1},
+    "PS": {"exchange": "GFEX", "session_group": "commodity", "tick_size": 5, "multiplier": 3},
+    "PT": {"exchange": "GFEX", "session_group": "commodity", "tick_size": 0.05, "multiplier": 1000},
+    "PD": {"exchange": "GFEX", "session_group": "commodity", "tick_size": 0.05, "multiplier": 1000}
+  },
+  "explicit_exclusions": {
+    "PL": "20260109 source data contains genuine night-session volume increases after 21:00",
+    "RR": "20260109 source data contains genuine night-session volume increases after 21:00"
+  },
+  "liquidity": {
+    "min_volume": 1000,
+    "min_nonzero_updates": 1000,
+    "min_active_minute_coverage": 0.6,
+    "min_price_bins": 8
+  },
+  "profile": {
+    "value_area_fraction": 0.7,
+    "smoothing_sigmas_ticks": [0, 1, 2, 4],
+    "min_scale_persistence": 3,
+    "method_match_ticks": 2,
+    "min_peak_prominence_share": 0.0025,
+    "min_valley_depth": 0.25,
+    "merge_distance_ticks": 1,
+    "max_gap_millis": 5000,
+    "max_interval_vwap_distance_ticks": 100
+  },
+  "evaluation": {
+    "reaction_median_range_fraction": 0.5,
+    "penetration_median_range_fraction": 0.25,
+    "min_reaction_ticks": 2,
+    "min_penetration_ticks": 1
+  }
+}

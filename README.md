@@ -111,6 +111,7 @@ bash run_tests.sh          # 在 kline 项目根目录执行(需 luajit 在 PATH
 - `docs/tradingview_research.md` — TradingView 对齐哲学对比
 - `docs/DEVELOPMENT.md` — 分里程碑开发计划与验收
 - `tools/akshare_data/README.md` — AKShare 新浪期货测试数据工具与格式差异
+- `tools/market_profile/README.md` — 纯日盘 Tick Volume Profile、节点识别与上午/下午 smoke test
 
 ## 🗺️ Roadmap
 
