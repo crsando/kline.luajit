@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Market Profile Dashboard</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="toolbar">
+      <div class="brand">
+        <strong>Market Profile Dashboard</strong>
+        <span>Volume profile · 1min · VWAP reference</span>
+      </div>
+      <label>交易日 <select id="dateSelect"></select></label>
+      <label>合约 <select id="instrumentSelect"></select></label>
+      <button id="reloadButton" title="重新加载当前合约">刷新</button>
+      <div id="status" class="status">加载中</div>
+    </header>
+
+    <section class="summary" id="summary"></section>
+
+    <section class="workspace">
+      <div id="chart" class="chart"></div>
+      <aside class="side-panel">
+        <div class="panel-heading">
+          <h2>Volume Profile</h2>
+          <div class="legend"><span class="swatch profile"></span>上午成交量</div>
+        </div>
+        <div id="profileStats" class="profile-stats"></div>
+        <div id="zones" class="zones"></div>
+      </aside>
+    </section>
+  </main>
+  <script src="/vendor/echarts.min.js"></script>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
